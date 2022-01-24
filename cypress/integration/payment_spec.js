@@ -1,3 +1,5 @@
+const {v4: uuidv4} = require("uuid");
+
 describe('payment', () => {
    it('user can make payment', () => {
 
@@ -16,14 +18,36 @@ describe('payment', () => {
 
       // search for user
       cy.findByRole('textbox').type('Ibrahim Dickens');
-      cy.getByText(/devon becker/i).click();
+      cy.findByText(/ibrahim dickens/i).click();
       
       // add amount and note
+      const paymentAmount = '100.00';
+      cy.findByPlaceholderText(/amount/i).type(paymentAmount);
+      const note = uuidv4()
+      cy.findByPlaceholderText(/add a note/i).type(note);
+
       // click pay
+      cy.findByRole('button', { name: /pay/i}).click();
+
       // return to transactions page
+      cy.findByRole('button', { name: /return to transactions/i}).click();
+
       // go to personal payments
+      cy.findByRole('tab', { name: /mine/i}).click();
+
       // click on payment
+
+      cy.findByText(note).click({force: true});
+
       // verify if payment was made
+      cy.findByText(`-$${paymentAmount}`).should('be.visible');
+      cy.findByText(note).should('be.visible');
+
       // verify if payment amount was deducted
+      cy.get('[data-test="sidenav-user-balance"]').then(balance => {
+         const convertedOldBalance = parseFloat(oldBalance.replace(/\$|,/g, ''));
+         const convertedNewBalance = parseFloat(balance.text().replace(/\$|,/g, ''));
+         expect(convertedOldBalance - convertedNewBalance).to.equal(parseFloat(paymentAmount));
+      });
    })
 })
